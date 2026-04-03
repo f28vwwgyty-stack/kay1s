@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>2GIS Алматы | Smart Dashboard с AI-прогнозами</title>
-    <!-- Leaflet для карты (аналог 2GIS) -->
+    <title>Умный Алматы | Карта + AI + Викторина</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -17,21 +16,20 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #0a0f1e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0f1e 0%, #0f1629 100%);
             color: #e0e4f0;
             overflow: hidden;
             height: 100vh;
         }
 
-        /* App Layout */
         .app {
             display: flex;
             flex-direction: column;
             height: 100vh;
         }
 
-        /* Top Navigation Bar */
+        /* Top Navigation */
         .top-nav {
             background: rgba(10, 15, 30, 0.95);
             backdrop-filter: blur(10px);
@@ -46,11 +44,12 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            padding: 12px 0;
         }
 
         .logo h1 {
-            font-size: 20px;
-            background: linear-gradient(135deg, #3b82f6, #10b981);
+            font-size: 22px;
+            background: linear-gradient(135deg, #3b82f6, #10b981, #8b5cf6);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -67,13 +66,14 @@
             background: rgba(0,0,0,0.3);
             padding: 5px;
             border-radius: 40px;
+            flex-wrap: wrap;
         }
 
         .nav-tab {
-            padding: 10px 24px;
+            padding: 8px 20px;
             border-radius: 30px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             transition: all 0.2s;
             background: transparent;
@@ -88,12 +88,6 @@
         .nav-tab:hover:not(.active) {
             background: rgba(59,130,246,0.2);
             color: white;
-        }
-
-        .right-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
         }
 
         .status-badge {
@@ -124,7 +118,6 @@
             overflow: hidden;
         }
 
-        /* Tab Content */
         .tab-content {
             display: none;
             height: 100%;
@@ -147,7 +140,18 @@
             background: #0f172a;
         }
 
-        /* Dashboard Grid */
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 10px;
+            z-index: 1000;
+        }
+
+        /* Dashboard */
         .dashboard-grid {
             padding: 20px;
             display: grid;
@@ -195,14 +199,8 @@
             font-weight: bold;
         }
 
-        .kpi-label {
-            font-size: 11px;
-            color: #94a3b8;
-            margin-top: 5px;
-        }
-
         .street-list {
-            max-height: 300px;
+            max-height: 250px;
             overflow-y: auto;
         }
 
@@ -214,726 +212,575 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            transition: all 0.2s;
+            background: rgba(0,0,0,0.2);
         }
 
-        .street-item:hover { transform: translateX(5px); }
-        .street-red { background: rgba(239,68,68,0.15); border-left: 3px solid #ef4444; }
-        .street-orange { background: rgba(249,115,22,0.15); border-left: 3px solid #f97316; }
-        .street-yellow { background: rgba(234,179,8,0.15); border-left: 3px solid #fbbf24; }
-        .street-green { background: rgba(34,197,94,0.15); border-left: 3px solid #4ade80; }
+        .street-red { border-left: 3px solid #ef4444; }
+        .street-orange { border-left: 3px solid #f97316; }
+        .street-yellow { border-left: 3px solid #fbbf24; }
+        .street-green { border-left: 3px solid #4ade80; }
 
         /* AI Chat */
-        .ai-chat {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 350px;
-            height: 450px;
-            background: rgba(10, 15, 30, 0.98);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(59,130,246,0.4);
+        .ai-chat-container {
             display: flex;
             flex-direction: column;
-            z-index: 1001;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            height: 100%;
+            padding: 20px;
         }
 
-        .ai-chat-header {
-            padding: 15px 20px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border-radius: 20px 20px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .ai-chat-messages {
+        .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
         .message {
-            max-width: 85%;
-            padding: 10px 14px;
-            border-radius: 15px;
-            font-size: 12px;
-            line-height: 1.4;
+            margin-bottom: 15px;
+            max-width: 80%;
         }
 
-        .user-msg {
-            background: #3b82f6;
-            align-self: flex-end;
-            border-radius: 15px 15px 0 15px;
+        .user-message {
+            text-align: right;
+            margin-left: auto;
         }
 
-        .ai-msg {
+        .user-message .msg-text {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 20px 20px 0 20px;
+        }
+
+        .ai-message .msg-text {
             background: rgba(255,255,255,0.1);
-            align-self: flex-start;
-            border-radius: 15px 15px 15px 0;
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 20px 20px 20px 0;
         }
 
         .chat-input-area {
-            padding: 15px;
-            border-top: 1px solid rgba(59,130,246,0.3);
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
         .chat-input {
             flex: 1;
-            padding: 10px;
+            padding: 12px 16px;
             background: rgba(0,0,0,0.4);
             border: 1px solid rgba(59,130,246,0.3);
-            border-radius: 20px;
+            border-radius: 30px;
             color: white;
             outline: none;
         }
 
-        .send-btn {
+        /* AI Forecast */
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .forecast-card {
+            background: rgba(18, 25, 45, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .hourly-forecast {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .hour-item {
+            text-align: center;
+            min-width: 70px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+        }
+
+        /* Quiz */
+        .quiz-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(18, 25, 45, 0.9);
+            border-radius: 30px;
+            text-align: center;
+        }
+
+        .quiz-question {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .quiz-option {
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover {
+            background: rgba(59,130,246,0.3);
+            transform: scale(1.02);
+        }
+
+        .quiz-option.correct {
+            background: rgba(34,197,94,0.3);
+            border: 1px solid #4ade80;
+        }
+
+        .quiz-option.wrong {
+            background: rgba(239,68,68,0.3);
+            border: 1px solid #ef4444;
+        }
+
+        .quiz-score {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .next-btn {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
             color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
             cursor: pointer;
-        }
-
-        /* Map Legend */
-        .map-legend {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.8);
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-size: 10px;
-            z-index: 1000;
-        }
-
-        .legend-color {
-            width: 20px;
-            height: 4px;
-            border-radius: 2px;
-            display: inline-block;
+            font-size: 16px;
+            margin-top: 20px;
         }
 
         @media (max-width: 900px) {
             .dashboard-grid { grid-template-columns: 1fr; }
-            .ai-chat { width: 300px; height: 400px; }
-            .nav-tab { padding: 6px 12px; font-size: 12px; }
+            .forecast-grid { grid-template-columns: 1fr; }
+            .nav-tab { padding: 6px 12px; font-size: 11px; }
         }
     </style>
 </head>
 <body>
     <div class="app">
-        <!-- Top Navigation -->
         <div class="top-nav">
             <div class="nav-container">
                 <div class="logo">
-                    <h1>🏙️ 2GIS Алматы | Smart Dashboard</h1>
-                    <p>AI-прогнозы | Пробки в реальном времени</p>
+                    <h1>🏙️ Умный Алматы | Smart City</h1>
+                    <p>AI-аналитика | Карта | Прогнозы | Викторина</p>
                 </div>
                 <div class="nav-tabs">
-                    <div class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Дашборд</div>
-                    <div class="nav-tab" data-tab="map" onclick="switchTab('map')">🗺️ 2GIS Карта</div>
-                    <div class="nav-tab" data-tab="ai" onclick="switchTab('ai')">🤖 AI-прогнозы</div>
-                    <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')">⚙️ Настройки</div>
+                    <div class="nav-tab active" data-tab="map" onclick="switchTab('map')">🗺️ Карта</div>
+                    <div class="nav-tab" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Дашборд</div>
+                    <div class="nav-tab" data-tab="ai" onclick="switchTab('ai')">🤖 AI Помощник</div>
+                    <div class="nav-tab" data-tab="forecast" onclick="switchTab('forecast')">📈 AI Прогнозы</div>
+                    <div class="nav-tab" data-tab="quiz" onclick="switchTab('quiz')">🎮 Викторина</div>
                 </div>
-                <div class="right-controls">
-                    <div class="status-badge" id="statusBadge">🟢 НОРМА</div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="status-badge" id="statusBadge">🟢 Онлайн</div>
                     <button class="refresh-btn" onclick="refreshAll()">🔄 Обновить</button>
                 </div>
             </div>
         </div>
 
         <div class="main-content">
-            <!-- Dashboard Tab -->
-            <div class="tab-content active" id="dashboardTab">
-                <div class="dashboard-grid">
-                    <!-- Транспортный блок -->
-                    <div class="dashboard-card">
-                        <div class="card-title">
-                            <span>🚗</span> Транспортная ситуация
-                        </div>
-                        <div class="kpi-row">
-                            <div class="kpi-box">
-                                <div class="kpi-value" id="avgCongestion">0<span style="font-size:14px;">%</span></div>
-                                <div class="kpi-label">Средняя загруженность</div>
-                            </div>
-                            <div class="kpi-box">
-                                <div class="kpi-value" id="avgSpeed">0<span style="font-size:14px;">км/ч</span></div>
-                                <div class="kpi-label">Средняя скорость</div>
-                            </div>
-                            <div class="kpi-box">
-                                <div class="kpi-value" id="totalIncidents">0</div>
-                                <div class="kpi-label">Инцидентов за час</div>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="trafficChart" style="height: 200px;"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Экологический блок -->
-                    <div class="dashboard-card">
-                        <div class="card-title">
-                            <span>🌿</span> Экологическая обстановка
-                        </div>
-                        <div class="kpi-row">
-                            <div class="kpi-box">
-                                <div class="kpi-value" id="aqi">0</div>
-                                <div class="kpi-label">AQI (качество воздуха)</div>
-                            </div>
-                            <div class="kpi-box">
-                                <div class="kpi-value" id="pm25">0<span style="font-size:14px;">μg</span></div>
-                                <div class="kpi-label">PM2.5</div>
-                            </div>
-                            <div class="kpi-box">
-                                <div class="kpi-value" id="noise">0<span style="font-size:14px;">дБ</span></div>
-                                <div class="kpi-label">Уровень шума</div>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="ecologyChart" style="height: 200px;"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Проблемные улицы -->
-                    <div class="dashboard-card">
-                        <div class="card-title">
-                            <span>🚦</span> Загруженность улиц (по данным 2GIS)
-                        </div>
-                        <div class="street-list" id="streetList">
-                            Загрузка...
-                        </div>
-                    </div>
-
-                    <!-- AI-прогноз -->
-                    <div class="dashboard-card">
-                        <div class="card-title">
-                            <span>🤖</span> AI-прогноз на ближайшие часы
-                        </div>
-                        <div id="aiForecast" style="line-height: 1.6;">
-                            Анализ данных...
-                        </div>
-                        <div style="margin-top: 15px;">
-                            <strong>📋 Рекомендации:</strong>
-                            <ul id="recommendations" style="margin-top: 10px; list-style: none;">
-                                <li>⏳ Загрузка...</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Map Tab - 2GIS Карта -->
-            <div class="tab-content" id="mapTab">
+            <!-- Вкладка Карта -->
+            <div class="tab-content active" id="mapTab">
                 <div class="map-container">
                     <div id="almatyMap"></div>
                     <div class="map-legend">
-                        <div><span class="legend-color" style="background: #4ade80;"></span> 🟢 Свободно (0-30%)</div>
-                        <div><span class="legend-color" style="background: #fbbf24;"></span> 🟡 Загружено (30-60%)</div>
-                        <div><span class="legend-color" style="background: #f97316;"></span> 🟠 Пробки (60-80%)</div>
-                        <div><span class="legend-color" style="background: #ef4444;"></span> 🔴 Красная дорога (80-100%)</div>
+                        <div><span style="display:inline-block; width:16px; height:3px; background:#4ade80;"></span> 🟢 Свободно</div>
+                        <div><span style="display:inline-block; width:16px; height:3px; background:#fbbf24;"></span> 🟡 Загружено</div>
+                        <div><span style="display:inline-block; width:16px; height:3px; background:#f97316;"></span> 🟠 Пробки</div>
+                        <div><span style="display:inline-block; width:16px; height:3px; background:#ef4444;"></span> 🔴 Красная дорога</div>
                     </div>
                 </div>
             </div>
 
-            <!-- AI Прогнозы Tab -->
+            <!-- Вкладка Дашборд -->
+            <div class="tab-content" id="dashboardTab">
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-title">🚗 Транспортная ситуация</div>
+                        <div class="kpi-row">
+                            <div class="kpi-box"><div class="kpi-value" id="avgCongestion">--<span style="font-size:14px;">%</span></div><div class="kpi-label">Загруженность</div></div>
+                            <div class="kpi-box"><div class="kpi-value" id="avgSpeed">--<span style="font-size:14px;">км/ч</span></div><div class="kpi-label">Скорость</div></div>
+                            <div class="kpi-box"><div class="kpi-value" id="totalIncidents">0</div><div class="kpi-label">Происшествий</div></div>
+                        </div>
+                        <div class="card-title">🛣️ Загруженность улиц</div>
+                        <div class="street-list" id="streetList">Загрузка...</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-title">🌿 Экология</div>
+                        <div class="kpi-row">
+                            <div class="kpi-box"><div class="kpi-value" id="aqi">--</div><div class="kpi-label">AQI</div></div>
+                            <div class="kpi-box"><div class="kpi-value" id="pm25">--<span style="font-size:14px;">µg</span></div><div class="kpi-label">PM2.5</div></div>
+                            <div class="kpi-box"><div class="kpi-value" id="temperature">--<span style="font-size:14px;">°C</span></div><div class="kpi-label">Температура</div></div>
+                        </div>
+                        <div class="card-title">⚠️ Происшествия</div>
+                        <div id="incidentList" style="max-height: 200px; overflow-y: auto;">Загрузка...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка AI Помощник -->
             <div class="tab-content" id="aiTab">
-                <div class="dashboard-grid" style="grid-template-columns: 1fr;">
-                    <div class="dashboard-card">
-                        <div class="card-title">
-                            <span>🧠</span> Детальный AI-анализ Алматы
-                        </div>
-                        <div id="detailedAnalysis" style="line-height: 1.8;">
-                            Загрузка анализа...
+                <div class="ai-chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message ai-message">
+                            <div class="msg-text">👋 Здравствуйте! Я AI-помощник города Алматы. Спрашивайте меня о пробках, улицах, погоде или любых городских событиях!</div>
                         </div>
                     </div>
-                    <div class="dashboard-card">
-                        <div class="card-title">
-                            <span>📈</span> Прогноз по районам
-                        </div>
-                        <div id="districtForecast" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap: 15px;">
-                            Загрузка...
-                        </div>
+                    <div class="chat-input-area">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Напишите вопрос... Например: какая ситуация на Абая?">
+                        <button class="refresh-btn" onclick="sendChatMessage()" style="padding: 12px 24px;">Отправить</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Settings Tab -->
-            <div class="tab-content" id="settingsTab">
-                <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
-                    <div class="dashboard-card">
-                        <div class="card-title">⚙️ Общие настройки</div>
-                        <div style="margin: 15px 0;">
-                            <label style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                                <span>🌍 Слой карты</span>
-                                <select id="mapLayer" onchange="changeMapLayer()" style="background: #1a1f2e; color: white; padding: 5px 10px; border-radius: 8px;">
-                                    <option value="dark">Темный</option>
-                                    <option value="light">Светлый</option>
-                                    <option value="satellite">Спутник</option>
-                                </select>
-                            </label>
-                            <label style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                                <span>🚦 Показывать пробки на карте</span>
-                                <div class="toggle-switch" id="trafficToggle" onclick="toggleTraffic()" style="width: 50px; height: 26px; background: #3b82f6; border-radius: 13px; cursor: pointer; position: relative;"><div style="position: absolute; width: 22px; height: 22px; background: white; border-radius: 50%; top: 2px; right: 3px;"></div></div>
-                            </label>
-                            <label style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                                <span>🔔 Уведомления о пробках</span>
-                                <div class="toggle-switch" id="notifToggle" onclick="toggleNotifications()" style="width: 50px; height: 26px; background: rgba(255,255,255,0.2); border-radius: 13px; cursor: pointer; position: relative;"><div style="position: absolute; width: 22px; height: 22px; background: white; border-radius: 50%; top: 2px; left: 3px;"></div></div>
-                            </label>
-                            <label style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                                <span>📊 Интервал обновления</span>
-                                <select id="refreshInterval" style="background: #1a1f2e; color: white; padding: 5px 10px; border-radius: 8px;">
-                                    <option value="5">5 секунд</option>
-                                    <option value="10" selected>10 секунд</option>
-                                    <option value="30">30 секунд</option>
-                                </select>
-                            </label>
-                        </div>
+            <!-- Вкладка AI Прогнозы -->
+            <div class="tab-content" id="forecastTab">
+                <div class="forecast-grid">
+                    <div class="forecast-card">
+                        <div class="card-title">📊 Прогноз на сегодня</div>
+                        <div id="dailyForecast" style="line-height: 1.8;">Загрузка...</div>
                     </div>
-                    <div class="dashboard-card">
-                        <div class="card-title">ℹ️ О системе</div>
-                        <div style="margin: 15px 0; line-height: 1.6;">
-                            <p><strong>Smart Dashboard Алматы</strong></p>
-                            <p>Версия: 2.0</p>
-                            <p>Данные в реальном времени на основе AI-анализа</p>
-                            <p>Источники: 2GIS API, сенсоры города, AI-прогноз</p>
-                            <hr style="margin: 15px 0; border-color: rgba(59,130,246,0.3);">
-                            <p>📞 Поддержка: support@smartalmaty.kz</p>
-                        </div>
+                    <div class="forecast-card">
+                        <div class="card-title">⏰ Почасовая загруженность</div>
+                        <div class="hourly-forecast" id="hourlyForecast">Загрузка...</div>
+                    </div>
+                    <div class="forecast-card">
+                        <div class="card-title">🌤️ Погодный прогноз</div>
+                        <div id="weatherForecast" style="line-height: 1.8;">Загрузка...</div>
+                    </div>
+                    <div class="forecast-card">
+                        <div class="card-title">💡 Рекомендации AI</div>
+                        <div id="aiRecommendations" style="line-height: 1.8;">Загрузка...</div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- AI Chat Assistant -->
-        <div class="ai-chat" id="aiChat">
-            <div class="ai-chat-header" onclick="toggleChat()">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span>🤖</span>
-                    <span>AI-помощник Алматы</span>
+            <!-- Вкладка Викторина -->
+            <div class="tab-content" id="quizTab">
+                <div class="quiz-container" id="quizContainer">
+                    <div class="quiz-question" id="quizQuestion">Загрузка...</div>
+                    <div class="quiz-options" id="quizOptions"></div>
+                    <div class="quiz-score" id="quizScore">Счет: 0 / 0</div>
+                    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Следующий вопрос</button>
                 </div>
-                <span>▼</span>
-            </div>
-            <div class="ai-chat-messages" id="chatMessages">
-                <div class="message ai-msg">
-                    👋 Здравствуйте! Я AI-помощник по городу Алматы.<br>
-                    Спросите меня о пробках, экологии, прогнозе или любой улице!
-                </div>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Например: пробки на Достык, прогноз на сегодня...">
-                <button class="send-btn" onclick="sendChatMessage()">➤</button>
             </div>
         </div>
     </div>
 
     <script>
-        let map;
-        let roadLayers = [];
-        let trafficChart, ecologyChart;
-        let updateInterval;
-        let trafficVisible = true;
-        let currentTab = 'dashboard';
-
-        // Данные по районам Алматы
-        const almatyDistricts = [
-            { name: 'Медеуский район', congestion: 72, aqi: 118, incidents: 3, forecast: 'Ожидается ухудшение в вечерний час пик' },
-            { name: 'Алмалинский район', congestion: 85, aqi: 145, incidents: 5, forecast: 'Критическая ситуация до 20:00' },
-            { name: 'Ауэзовский район', congestion: 68, aqi: 108, incidents: 2, forecast: 'Стабильная ситуация' },
-            { name: 'Бостандыкский район', congestion: 78, aqi: 125, incidents: 4, forecast: 'Пробки на пр. Абая до 19:30' },
-            { name: 'Жетысуский район', congestion: 58, aqi: 95, incidents: 1, forecast: 'Свободно' },
-            { name: 'Наурызбайский район', congestion: 45, aqi: 82, incidents: 0, forecast: 'Отличные условия' },
-            { name: 'Турксибский район', congestion: 62, aqi: 105, incidents: 2, forecast: 'Умеренное движение' }
-        ];
-
-        // Детальные улицы Алматы (как в 2GIS)
+        // ========== ДАННЫЕ ==========
         const almatyStreets = [
-            { name: 'пр. Достык', congestion: 78, incidents: 2, status: 'orange', length: 4.5 },
-            { name: 'ул. Толе би', congestion: 82, incidents: 3, status: 'red', length: 3.8 },
-            { name: 'пр. Абая', congestion: 88, incidents: 4, status: 'red', length: 5.2 },
-            { name: 'ул. Сатпаева', congestion: 68, incidents: 1, status: 'yellow', length: 3.2 },
-            { name: 'ул. Жандосова', congestion: 55, incidents: 0, status: 'green', length: 3.0 },
-            { name: 'пр. Райымбека', congestion: 85, incidents: 5, status: 'red', length: 4.0 },
-            { name: 'ул. Гагарина', congestion: 72, incidents: 1, status: 'orange', length: 2.8 },
-            { name: 'ул. Фурманова', congestion: 65, incidents: 1, status: 'yellow', length: 2.2 },
-            { name: 'ул. Панфилова', congestion: 70, incidents: 1, status: 'orange', length: 2.5 },
-            { name: 'пр. Сейфуллина', congestion: 75, incidents: 2, status: 'orange', length: 3.5 },
-            { name: 'ул. Жибек Жолы', congestion: 80, incidents: 2, status: 'red', length: 2.0 },
-            { name: 'пр. Назарбаева', congestion: 62, incidents: 0, status: 'yellow', length: 2.3 }
+            { name: "пр. Достык", lat: 43.255, lng: 76.930, congestion: 78, incidents: 2, status: "orange" },
+            { name: "ул. Толе би", lat: 43.260, lng: 76.920, congestion: 82, incidents: 3, status: "red" },
+            { name: "пр. Абая", lat: 43.250, lng: 76.910, congestion: 88, incidents: 4, status: "red" },
+            { name: "ул. Сатпаева", lat: 43.248, lng: 76.905, congestion: 68, incidents: 1, status: "yellow" },
+            { name: "ул. Жандосова", lat: 43.235, lng: 76.890, congestion: 55, incidents: 0, status: "green" },
+            { name: "пр. Райымбека", lat: 43.270, lng: 76.925, congestion: 85, incidents: 3, status: "red" },
+            { name: "ул. Гагарина", lat: 43.240, lng: 76.935, congestion: 72, incidents: 1, status: "orange" },
+            { name: "ул. Фурманова", lat: 43.252, lng: 76.940, congestion: 65, incidents: 1, status: "yellow" },
+            { name: "пр. Сейфуллина", lat: 43.245, lng: 76.915, congestion: 75, incidents: 2, status: "orange" },
+            { name: "ул. Жибек Жолы", lat: 43.262, lng: 76.935, congestion: 80, incidents: 2, status: "red" }
         ];
 
-        // Координаты ключевых точек Алматы для карты
-        const almatyPoints = [
-            { name: 'Центр (пл. Республики)', lat: 43.2567, lng: 76.9286, congestion: 85 },
-            { name: 'Медey', lat: 43.158, lng: 76.955, congestion: 55 },
-            { name: 'Абая/Достык', lat: 43.245, lng: 76.915, congestion: 82 },
-            { name: 'Райымбека пр.', lat: 43.270, lng: 76.925, congestion: 88 },
-            { name: 'Саина/Толе би', lat: 43.235, lng: 76.890, congestion: 75 },
-            { name: 'Атакент', lat: 43.225, lng: 76.920, congestion: 68 },
-            { name: 'Москва', lat: 43.240, lng: 76.950, congestion: 70 },
-            { name: 'Горный Гигант', lat: 43.200, lng: 76.860, congestion: 52 }
+        const quizQuestions = [
+            { question: "Какая улица в Алматы считается самой длинной?", options: ["пр. Абая", "пр. Достык", "ул. Толе би", "пр. Райымбека"], correct: 0 },
+            { question: "Какой район Алматы самый густонаселенный?", options: ["Медеуский", "Ауэзовский", "Алмалинский", "Бостандыкский"], correct: 1 },
+            { question: "В каком году Алматы стал называться Алматы?", options: ["1991", "1993", "1995", "1997"], correct: 1 },
+            { question: "Какое метро есть в Алматы?", options: ["Метрополитен", "Подземка", "ЛРТ", "Скоростной трамвай"], correct: 0 },
+            { question: "Какой парк является самым большим в Алматы?", options: ["Парк им. 28 гвардейцев", "Центральный парк", "Парк Первого Президента", "Ботанический сад"], correct: 2 },
+            { question: "Какая гора видна из центра Алматы?", options: ["Пик Талгар", "Хан-Тенгри", "Большое Алматинское озеро", "Кок-Тобе"], correct: 3 },
+            { question: "Сколько районов в Алматы?", options: ["5", "6", "7", "8"], correct: 2 },
+            { question: "Какой проспект считается главной магистралью Алматы?", options: ["пр. Достык", "пр. Абая", "пр. Райымбека", "пр. Сейфуллина"], correct: 1 }
         ];
 
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let quizAnswered = false;
+
+        let map;
+        let markers = [];
+
+        // ========== ИНИЦИАЛИЗАЦИЯ КАРТЫ ==========
         function initMap() {
             map = L.map('almatyMap').setView([43.2567, 76.9286], 13);
-            
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '2GIS Алматы | Карта дорог и пробок',
+                attribution: 'Умный Алматы | Карта города',
                 subdomains: 'abcd',
                 maxZoom: 18
             }).addTo(map);
-            
-            addMarkers();
-            if (trafficVisible) addRoads();
+            updateMapMarkers();
         }
 
-        function addMarkers() {
-            almatyPoints.forEach(point => {
-                let color = '#4ade80';
-                if (point.congestion >= 80) color = '#ef4444';
-                else if (point.congestion >= 60) color = '#f97316';
-                else if (point.congestion >= 30) color = '#fbbf24';
-                
-                const radius = 15 + (point.congestion / 100) * 10;
-                
-                const marker = L.circleMarker([point.lat, point.lng], {
+        function getColorByCongestion(congestion) {
+            if (congestion >= 80) return '#ef4444';
+            if (congestion >= 60) return '#f97316';
+            if (congestion >= 30) return '#fbbf24';
+            return '#4ade80';
+        }
+
+        function updateMapMarkers() {
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            almatyStreets.forEach(street => {
+                const color = getColorByCongestion(street.congestion);
+                const radius = 10 + (street.congestion / 100) * 12;
+                const marker = L.circleMarker([street.lat, street.lng], {
                     radius: radius,
                     fillColor: color,
                     color: 'white',
                     weight: 2,
-                    fillOpacity: 0.8
-                }).bindPopup(`
-                    <div style="background:#1a1f2e; padding:12px; border-radius:12px;">
-                        <b>📍 ${point.name}</b><br>
-                        🚗 Загруженность: ${point.congestion}%<br>
-                        ${point.congestion >= 80 ? '🔴 КРАСНАЯ ЗОНА - ОБЪЕЗД РЕКОМЕНДОВАН' : point.congestion >= 60 ? '🟠 ЗАТОРЫ' : point.congestion >= 30 ? '🟡 УМЕРЕННО' : '🟢 СВОБОДНО'}
-                    </div>
-                `).addTo(map);
+                    fillOpacity: 0.85
+                }).bindPopup(`<b>${street.name}</b><br>🚗 ${street.congestion}% загруженность`).addTo(map);
+                markers.push(marker);
             });
         }
 
-        function addRoads() {
-            roadLayers.forEach(l => map.removeLayer(l));
-            roadLayers = [];
-            
-            almatyStreets.forEach(street => {
-                // Симулируем координаты для улиц (в реальном API были бы реальные координаты)
-                const baseLat = 43.24;
-                const baseLng = 76.90;
-                const coords = [];
-                for (let i = 0; i < 5; i++) {
-                    coords.push([baseLat + (Math.random() - 0.5) * 0.05, baseLng + (Math.random() - 0.5) * 0.05]);
-                }
-                
-                let color = '#4ade80';
-                if (street.congestion >= 80) color = '#ef4444';
-                else if (street.congestion >= 60) color = '#f97316';
-                else if (street.congestion >= 30) color = '#fbbf24';
-                
-                const line = L.polyline(coords, {
-                    color: color,
-                    weight: 4,
-                    opacity: 0.8
-                }).bindPopup(`
-                    <div style="background:#1a1f2e; padding:12px; border-radius:12px;">
-                        <b>🛣️ ${street.name}</b><br>
-                        🚗 Загруженность: ${street.congestion}%<br>
-                        🚨 Инцидентов: ${street.incidents}<br>
-                        📏 Длина: ${street.length} км<br>
-                        <button onclick="askAboutStreet('${street.name}')" style="background:#3b82f6; border:none; color:white; padding:5px 10px; border-radius:8px; margin-top:8px; cursor:pointer;">🤖 AI-анализ</button>
-                    </div>
-                `);
-                roadLayers.push(line);
-                line.addTo(map);
-            });
-        }
-
-        function generateLiveData() {
-            const hour = new Date().getHours();
-            const isPeakHour = (hour >= 8 && hour <= 10) || (hour >= 17 && hour <= 19);
-            
-            almatyStreets.forEach(street => {
-                let change = (Math.random() - 0.5) * 10;
-                street.congestion = Math.min(98, Math.max(20, street.congestion + change));
-                if (isPeakHour) street.congestion += 8;
-                if (Math.random() < 0.08) street.incidents = Math.min(5, street.incidents + 1);
-                else if (Math.random() < 0.1) street.incidents = Math.max(0, street.incidents - 1);
-                
-                if (street.congestion >= 80) street.status = 'red';
-                else if (street.congestion >= 60) street.status = 'orange';
-                else if (street.congestion >= 30) street.status = 'yellow';
-                else street.status = 'green';
-            });
-            
-            almatyDistricts.forEach(district => {
-                district.congestion = Math.min(95, Math.max(30, district.congestion + (Math.random() - 0.5) * 8));
-            });
-        }
-
+        // ========== ОБНОВЛЕНИЕ ДАШБОРДА ==========
         function updateDashboard() {
-            generateLiveData();
-            
-            const avgCong = almatyStreets.reduce((sum, s) => sum + s.congestion, 0) / almatyStreets.length;
-            const avgSpd = Math.max(20, 65 - avgCong * 0.35);
-            const totalInc = almatyStreets.reduce((sum, s) => sum + s.incidents, 0);
-            const maxAqi = Math.max(...almatyDistricts.map(d => d.aqi));
+            const avgCong = almatyStreets.reduce((s, a) => s + a.congestion, 0) / almatyStreets.length;
+            const avgSpd = Math.max(20, 65 - avgCong * 0.45);
+            const totalInc = almatyStreets.reduce((s, a) => s + a.incidents, 0);
             
             document.getElementById('avgCongestion').innerHTML = avgCong.toFixed(1);
             document.getElementById('avgSpeed').innerHTML = avgSpd.toFixed(0);
             document.getElementById('totalIncidents').innerHTML = totalInc;
-            document.getElementById('aqi').innerHTML = maxAqi;
-            document.getElementById('pm25').innerHTML = (maxAqi * 0.55).toFixed(0);
-            document.getElementById('noise').innerHTML = (55 + Math.random() * 15).toFixed(0);
+            document.getElementById('aqi').innerHTML = 55 + Math.floor(Math.random() * 50);
+            document.getElementById('pm25').innerHTML = 20 + Math.floor(Math.random() * 30);
+            document.getElementById('temperature').innerHTML = 15 + Math.floor(Math.random() * 15);
             
-            const statusBadge = document.getElementById('statusBadge');
-            if (avgCong > 75) {
-                statusBadge.innerHTML = '🔴 КРИТИЧЕСКИЕ ПРОБКИ';
-                statusBadge.className = 'status-badge status-critical';
-            } else if (avgCong > 60) {
-                statusBadge.innerHTML = '🟡 ЗАТОРЫ НА ДОРОГАХ';
-                statusBadge.className = 'status-badge status-warning';
-            } else {
-                statusBadge.innerHTML = '🟢 ДОРОГИ СВОБОДНЫ';
-                statusBadge.className = 'status-badge status-normal';
-            }
-            
-            // Update street list
             const streetList = document.getElementById('streetList');
-            streetList.innerHTML = almatyStreets.sort((a,b) => b.congestion - a.congestion).slice(0, 8).map(s => `
+            streetList.innerHTML = almatyStreets.sort((a,b) => b.congestion - a.congestion).map(s => `
                 <div class="street-item street-${s.status}" onclick="askAboutStreet('${s.name}')">
                     <span><strong>${s.name}</strong></span>
-                    <span style="font-weight: bold;">${s.congestion}% ${s.status === 'red' ? '🔴' : s.status === 'orange' ? '🟠' : s.status === 'yellow' ? '🟡' : '🟢'}</span>
+                    <span>${s.congestion}% ${s.status === 'red' ? '🔴' : s.status === 'orange' ? '🟠' : s.status === 'yellow' ? '🟡' : '🟢'}</span>
                 </div>
             `).join('');
             
-            // AI Forecast
-            const worstHour = avgCong > 70 ? '19:00-20:00' : '18:00-19:00';
-            const forecast = `📊 <strong>Анализ на ${moment().format('HH:mm')}</strong><br><br>
-            ${avgCong > 75 ? '🔴 КРИТИЧЕСКАЯ СИТУАЦИЯ: Ожидаются крупные пробки на пр. Абая, пр. Райымбека, ул. Толе би.' : 
-              avgCong > 60 ? '🟠 ВНИМАНИЕ: Заторы на основных магистралях. Рекомендуется объезд.' :
-              '🟢 ШТАТНЫЙ РЕЖИМ: Дороги свободны.'}<br><br>
-            <strong>⏱️ Прогноз на ближайшие часы:</strong><br>
-            • Пик загруженности ожидается в ${worstHour}<br>
-            • К ${avgCong > 70 ? '21:00' : '19:30'} ситуация нормализуется<br>
-            • Рекомендуется избегать центр в часы пик`;
-            
-            document.getElementById('aiForecast').innerHTML = forecast;
-            
-            const recommendations = document.getElementById('recommendations');
-            recommendations.innerHTML = almatyStreets.filter(s => s.congestion > 75).slice(0, 3).map(s => 
-                `<li>🚦 ${s.name}: ${s.congestion}% - рекомендуется объезд</li>`
-            ).join('');
-            if (almatyStreets.filter(s => s.congestion > 75).length === 0) {
-                recommendations.innerHTML = '<li>✅ Все улицы свободны, приятной поездки!</li>';
-            }
-            
-            // Charts
-            const hours = Array.from({length: 12}, (_, i) => `${i+8}:00`);
-            const trafficData = Array.from({length: 12}, () => 40 + Math.random() * 40);
-            
-            if (trafficChart) {
-                trafficChart.data.datasets[0].data = trafficData;
-                trafficChart.update();
+            const incidentList = document.getElementById('incidentList');
+            const incidents = almatyStreets.filter(s => s.incidents > 0);
+            if (incidents.length === 0) {
+                incidentList.innerHTML = '<div style="padding:20px; text-align:center; color:#4ade80;">✅ Происшествий нет</div>';
             } else {
-                const ctx = document.getElementById('trafficChart').getContext('2d');
-                trafficChart = new Chart(ctx, {
-                    type: 'line',
-                    data: { labels: hours, datasets: [{ label: 'Загруженность (%)', data: trafficData, borderColor: '#3b82f6', fill: true, backgroundColor: 'rgba(59,130,246,0.1)' }] },
-                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: 'white' } } }, scales: { y: { ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } } }
-                });
+                incidentList.innerHTML = incidents.map(s => `<div class="street-item" style="background:rgba(239,68,68,0.15);"><strong>⚠️ ${s.name}</strong><br>${s.incidents} происшествий</div>`).join('');
             }
             
-            const ecologyData = Array.from({length: 12}, () => 50 + Math.random() * 70);
-            if (ecologyChart) {
-                ecologyChart.data.datasets[0].data = ecologyData;
-                ecologyChart.update();
-            } else {
-                const ctx = document.getElementById('ecologyChart').getContext('2d');
-                ecologyChart = new Chart(ctx, {
-                    type: 'line',
-                    data: { labels: hours, datasets: [{ label: 'AQI', data: ecologyData, borderColor: '#10b981', fill: true, backgroundColor: 'rgba(16,185,129,0.1)' }] },
-                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: 'white' } } }, scales: { y: { ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } } }
-                });
-            }
-            
-            // Detailed analysis for AI tab
-            const detailedAnalysis = document.getElementById('detailedAnalysis');
-            if (detailedAnalysis) {
-                detailedAnalysis.innerHTML = `
-                    <p><strong>🧠 Детальный AI-анализ города Алматы</strong></p><br>
-                    <p><strong>📊 Общая ситуация:</strong> Средняя загруженность ${avgCong.toFixed(1)}%. ${avgCong > 70 ? 'Наблюдаются масштабные затруднения движения.' : 'Движение в обычном режиме.'}</p>
-                    <p><strong>🔴 Красные зоны:</strong> ${almatyStreets.filter(s => s.congestion >= 80).map(s => s.name).join(', ') || 'Отсутствуют'}</p>
-                    <p><strong>🟠 Оранжевые зоны:</strong> ${almatyStreets.filter(s => s.congestion >= 60 && s.congestion < 80).map(s => s.name).join(', ') || 'Отсутствуют'}</p>
-                    <p><strong>🌿 Экология:</strong> AQI ${maxAqi} - ${maxAqi > 100 ? '⚠️ Нездоровый уровень, рекомендуется ограничить пребывание на улице' : '✅ Нормальный уровень'}</p>
-                    <p><strong>🚨 Инциденты:</strong> ${totalInc} ДТП за последний час</p>
-                    <p><strong>💡 Рекомендации:</strong> ${avgCong > 70 ? 'Используйте общественный транспорт или планируйте маршруты в объезд центра.' : 'Штатный режим, соблюдайте ПДД.'}</p>
-                `;
-            }
-            
-            // District forecast
-            const districtForecast = document.getElementById('districtForecast');
-            if (districtForecast) {
-                districtForecast.innerHTML = almatyDistricts.map(d => `
-                    <div style="background:rgba(0,0,0,0.3); padding:12px; border-radius:12px;">
-                        <strong>🏘️ ${d.name}</strong><br>
-                        🚗 ${d.congestion}% загруженность<br>
-                        🌿 AQI ${d.aqi}<br>
-                        📈 ${d.forecast}
-                    </div>
-                `).join('');
-            }
-            
-            if (trafficVisible && map) {
-                roadLayers.forEach(l => map.removeLayer(l));
-                addRoads();
-            }
+            const statusBadge = document.getElementById('statusBadge');
+            if (avgCong > 75) statusBadge.className = 'status-badge status-critical';
+            else if (avgCong > 60) statusBadge.className = 'status-badge status-warning';
+            else statusBadge.className = 'status-badge status-normal';
         }
 
-        function askAboutStreet(streetName) {
-            const street = almatyStreets.find(s => s.name === streetName);
-            if (street) {
-                openChat();
-                const analysis = `📊 <b>AI-анализ улицы ${street.name}</b><br><br>
-                🚗 Текущая загруженность: ${street.congestion}%<br>
-                🚨 Инцидентов: ${street.incidents}<br>
-                📏 Протяженность: ${street.length} км<br><br>
-                ${street.congestion >= 80 ? '🔴 КРАСНАЯ ДОРОГА: Движение практически стоит. Рекомендуется объезд через параллельные улицы.' :
-                  street.congestion >= 60 ? '🟠 СИЛЬНЫЕ ЗАТОРЫ: Время в пути увеличено на 20-30 минут.' :
-                  street.congestion >= 30 ? '🟡 УМЕРЕННОЕ ДВИЖЕНИЕ: Возможны небольшие задержки.' :
-                  '🟢 СВОБОДНО: Отличные условия для движения.'}<br><br>
-                💡 <b>Прогноз:</b> ${street.congestion >= 70 ? 'Ожидается ухудшение в ближайший час.' : 'Ситуация стабильна.'}`;
-                addAIMessage(analysis);
-            }
-        }
-
-        function openChat() {
-            document.getElementById('aiChat').style.display = 'flex';
-        }
-
-        function toggleChat() {
-            const chat = document.getElementById('aiChat');
-            if (chat.style.display === 'none') chat.style.display = 'flex';
-            else chat.style.display = 'none';
-        }
-
+        // ========== AI ПОМОЩНИК ==========
         function sendChatMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             if (!message) return;
             
-            addUserMessage(message);
+            addMessage(message, 'user');
             input.value = '';
             
-            setTimeout(() => processAIChat(message), 500);
+            setTimeout(() => {
+                const response = generateAIResponse(message);
+                addMessage(response, 'ai');
+            }, 500);
         }
 
-        function addUserMessage(text) {
+        function addMessage(text, sender) {
             const messagesDiv = document.getElementById('chatMessages');
             const msgDiv = document.createElement('div');
-            msgDiv.className = 'message user-msg';
-            msgDiv.innerHTML = text;
+            msgDiv.className = `message ${sender}-message`;
+            msgDiv.innerHTML = `<div class="msg-text">${text}</div>`;
             messagesDiv.appendChild(msgDiv);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
-        function addAIMessage(text) {
-            const messagesDiv = document.getElementById('chatMessages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message ai-msg';
-            msgDiv.innerHTML = text;
-            messagesDiv.appendChild(msgDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        function processAIChat(message) {
-            const lowerMsg = message.toLowerCase();
-            let response = '';
-            
-            const foundStreet = almatyStreets.find(s => lowerMsg.includes(s.name.toLowerCase()));
-            const foundDistrict = almatyDistricts.find(d => lowerMsg.includes(d.name.toLowerCase()));
+        function generateAIResponse(question) {
+            const lowerQ = question.toLowerCase();
+            const foundStreet = almatyStreets.find(s => lowerQ.includes(s.name.toLowerCase()));
             
             if (foundStreet) {
-                response = `📊 <b>Анализ ${foundStreet.name}</b><br><br>🚗 Загруженность: ${foundStreet.congestion}%<br>🚨 Инцидентов: ${foundStreet.incidents}<br>${foundStreet.congestion >= 80 ? '🔴 КРАСНАЯ ДОРОГА - объезд обязателен!' : foundStreet.congestion >= 60 ? '🟠 Ожидайте задержки 20-30 мин' : '✅ Дорога свободна'}`;
-            } 
-            else if (foundDistrict) {
-                response = `🏘️ <b>Район ${foundDistrict.name}</b><br><br>🚗 Загруженность: ${foundDistrict.congestion}%<br>🌿 AQI: ${foundDistrict.aqi}<br>📈 Прогноз: ${foundDistrict.forecast}`;
+                return `📊 <strong>Анализ улицы ${foundStreet.name}</strong><br><br>🚗 Загруженность: ${foundStreet.congestion}%<br>🚨 Инцидентов: ${foundStreet.incidents}<br>${foundStreet.congestion >= 80 ? '🔴 КРАСНАЯ ДОРОГА - объезд обязателен!' : foundStreet.congestion >= 60 ? '🟠 СИЛЬНЫЕ ЗАТОРЫ' : foundStreet.congestion >= 30 ? '🟡 УМЕРЕННОЕ ДВИЖЕНИЕ' : '🟢 СВОБОДНО'}<br><br>💡 ${foundStreet.congestion >= 70 ? 'Рекомендуется объезд' : 'Дорога свободна, приятной поездки!'}`;
             }
-            else if (lowerMsg.includes('пробка') || lowerMsg.includes('загруженность')) {
-                const worst = almatyStreets.sort((a,b) => b.congestion - a.congestion)[0];
-                response = `🚦 <b>Самая загруженная улица:</b> ${worst.name} (${worst.congestion}%)<br><br>📊 <b>Общая статистика:</b><br>• Средняя загруженность: ${(almatyStreets.reduce((s,str)=>s+str.congestion,0)/almatyStreets.length).toFixed(1)}%<br>• Красных улиц: ${almatyStreets.filter(s=>s.congestion>=80).length}<br>• Оранжевых улиц: ${almatyStreets.filter(s=>s.congestion>=60 && s.congestion<80).length}`;
+            if (lowerQ.includes('пробк') || lowerQ.includes('загруженн')) {
+                const avg = almatyStreets.reduce((s,a)=>s+a.congestion,0)/almatyStreets.length;
+                return `🚦 <strong>Ситуация на дорогах Алматы</strong><br><br>📊 Средняя загруженность: ${avg.toFixed(1)}%<br>🔴 Красных улиц: ${almatyStreets.filter(s=>s.congestion>=80).length}<br>💡 ${avg>70?'Рекомендуется использовать общественный транспорт':'Дороги свободны'}`;
             }
-            else if (lowerMsg.includes('экология') || lowerMsg.includes('aqi') || lowerMsg.includes('воздух')) {
-                const worst = almatyDistricts.sort((a,b) => b.aqi - a.aqi)[0];
-                response = `🌿 <b>Экологическая ситуация в Алматы</b><br><br>• Худший район: ${worst.name} (AQI ${worst.aqi})<br>• Средний AQI: ${(almatyDistricts.reduce((s,d)=>s+d.aqi,0)/almatyDistricts.length).toFixed(0)}<br><br>${worst.aqi > 100 ? '⚠️ Рекомендуется ограничить пребывание на улице' : '✅ Воздух в норме'}`;
+            if (lowerQ.includes('экологи') || lowerQ.includes('воздух')) {
+                return `🌿 <strong>Экологическая обстановка</strong><br><br>🌡️ AQI: ${55+Math.floor(Math.random()*50)}<br>💨 PM2.5: ${20+Math.floor(Math.random()*30)} µg/m³<br>${Math.random()>0.5?'Качество воздуха хорошее':'Рекомендуется ограничить прогулки'}`;
             }
-            else if (lowerMsg.includes('прогноз') || lowerMsg.includes('что будет')) {
-                const hour = new Date().getHours();
-                response = `📈 <b>AI-прогноз на сегодня</b><br><br>• Сейчас: ${hour >= 8 && hour <= 10 ? 'УТРЕННИЙ ЧАС ПИК' : hour >= 17 && hour <= 19 ? 'ВЕЧЕРНИЙ ЧАС ПИК' : 'МЕЖПИКОВЫЙ ПЕРИОД'}<br>• Пик загруженности: 18:00-19:30<br>• Рекомендуется: ${hour >= 17 && hour <= 19 ? 'избегать центр, использовать ОТ' : 'свободное движение'}<br>• К 20:30 ситуация нормализуется`;
-            }
-            else {
-                response = `🤖 Я AI-помощник по Алматы. Спросите меня:<br><br>• "Пробки на Достык" - анализ улицы<br>• "Экология в Медеуском районе"<br>• "Прогноз на сегодня"<br>• "Где самые большие пробки?"<br><br>Или нажмите на любую улицу на карте!`;
-            }
-            
-            addAIMessage(response);
+            return `🤖 <strong>Я AI-помощник Алматы</strong><br><br>Я могу ответить на вопросы о:<br>• Пробках и загруженности улиц<br>• Конкретных улицах (например, "Абая")<br>• Экологической ситуации<br>• Прогнозе на день<br><br>Что вас интересует?`;
         }
 
-        function switchTab(tab) {
-            currentTab = tab;
+        function askAboutStreet(streetName) {
+            document.getElementById('chatInput').value = streetName;
+            switchTab('ai');
+            setTimeout(() => sendChatMessage(), 100);
+        }
+
+        // ========== AI ПРОГНОЗЫ ==========
+        function updateForecasts() {
+            const hour = new Date().getHours();
+            const avgCong = almatyStreets.reduce((s,a)=>s+a.congestion,0)/almatyStreets.length;
+            
+            document.getElementById('dailyForecast').innerHTML = `
+                📈 <strong>Прогноз на ${moment().format('DD.MM.YYYY')}</strong><br><br>
+                🕐 Сейчас: ${hour}:00<br>
+                🚗 Текущая загруженность: ${avgCong.toFixed(1)}%<br>
+                ${hour >= 8 && hour <= 10 ? '🔴 УТРЕННИЙ ЧАС ПИК' : hour >= 17 && hour <= 19 ? '🔴 ВЕЧЕРНИЙ ЧАС ПИК' : '🟢 МЕЖПИКОВЫЙ ПЕРИОД'}<br>
+                📊 Пик загруженности: 18:00-19:30<br>
+                🌙 Ночью: дороги свободны
+            `;
+            
+            const hourly = [];
+            for (let i = 0; i < 8; i++) {
+                let h = (hour + i) % 24;
+                let cong = 30;
+                if ((h >= 8 && h <= 10) || (h >= 17 && h <= 19)) cong = 75 + Math.random() * 15;
+                else if (h >= 22 || h <= 5) cong = 15 + Math.random() * 15;
+                else cong = 45 + Math.random() * 20;
+                hourly.push(`<div class="hour-item"><strong>${h}:00</strong><br>${cong.toFixed(0)}%</div>`);
+            }
+            document.getElementById('hourlyForecast').innerHTML = hourly.join('');
+            
+            document.getElementById('weatherForecast').innerHTML = `
+                🌡️ Температура: +${15+Math.floor(Math.random()*15)}°C<br>
+                💨 Ветер: ${2+Math.floor(Math.random()*8)} м/с<br>
+                ☁️ Облачность: ${['Ясно', 'Малооблачно', 'Облачно', 'Пасмурно'][Math.floor(Math.random()*4)]}<br>
+                🌧️ Осадки: ${Math.random()>0.7?'Возможны':'Без осадков'}
+            `;
+            
+            document.getElementById('aiRecommendations').innerHTML = `
+                💡 <strong>Рекомендации на сегодня:</strong><br><br>
+                ${avgCong > 70 ? '• Используйте метро или автобусы' : '• Дороги свободны, приятной поездки!'}<br>
+                • Планируйте маршруты заранее<br>
+                • Следите за обновлениями на карте
+            `;
+        }
+
+        // ========== ВИКТОРИНА ==========
+        function loadQuestion() {
+            const q = quizQuestions[currentQuestionIndex];
+            document.getElementById('quizQuestion').innerHTML = q.question;
+            document.getElementById('quizScore').innerHTML = `Счет: ${score} / ${quizQuestions.length}`;
+            
+            const optionsDiv = document.getElementById('quizOptions');
+            optionsDiv.innerHTML = '';
+            quizAnswered = false;
+            
+            q.options.forEach((opt, idx) => {
+                const optDiv = document.createElement('div');
+                optDiv.className = 'quiz-option';
+                optDiv.innerHTML = opt;
+                optDiv.onclick = () => checkAnswer(idx);
+                optionsDiv.appendChild(optDiv);
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (quizAnswered) return;
+            quizAnswered = true;
+            const q = quizQuestions[currentQuestionIndex];
+            const options = document.querySelectorAll('.quiz-option');
+            
+            if (selectedIndex === q.correct) {
+                score++;
+                options[selectedIndex].classList.add('correct');
+            } else {
+                options[selectedIndex].classList.add('wrong');
+                options[q.correct].classList.add('correct');
+            }
+            document.getElementById('quizScore').innerHTML = `Счет: ${score} / ${quizQuestions.length}`;
+        }
+
+        function nextQuestion() {
+            if (!quizAnswered && currentQuestionIndex < quizQuestions.length - 1) {
+                alert('Пожалуйста, ответьте на вопрос!');
+                return;
+            }
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizQuestions.length) {
+                loadQuestion();
+            } else {
+                document.getElementById('quizContainer').innerHTML = `
+                    <div style="text-align:center; padding:40px;">
+                        <div style="font-size:48px;">🎉</div>
+                        <div style="font-size:28px; margin:20px 0;">Викторина завершена!</div>
+                        <div style="font-size:20px;">Ваш счет: ${score} из ${quizQuestions.length}</div>
+                        <div style="margin-top:20px;">${score === quizQuestions.length ? '🏆 Отлично! Вы знаток Алматы!' : '👍 Хороший результат! Попробуйте еще раз!'}</div>
+                        <button class="next-btn" onclick="restartQuiz()" style="margin-top:30px;">Пройти заново</button>
+                    </div>
+                `;
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            quizAnswered = false;
+            location.reload();
+        }
+
+        // ========== ОБЩИЕ ФУНКЦИИ ==========
+        function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById(`${tab}Tab`).classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
             
-            if (tab === 'map' && map) {
-                setTimeout(() => map.invalidateSize(), 100);
-            }
+            if (tabName === 'map' && map) setTimeout(() => map.invalidateSize(), 100);
+            if (tabName === 'forecast') updateForecasts();
+            if (tabName === 'quiz') loadQuestion();
         }
 
-        function changeMapLayer() { /* API call would go here */ }
-        function toggleTraffic() { trafficVisible = !trafficVisible; if (map) addRoads(); }
-        function toggleNotifications() { /* Toggle notifications */ }
-        
         function refreshAll() {
+            almatyStreets.forEach(s => {
+                s.congestion = Math.min(95, Math.max(20, s.congestion + (Math.random() - 0.5) * 10));
+                if (s.congestion >= 80) s.status = "red";
+                else if (s.congestion >= 60) s.status = "orange";
+                else if (s.congestion >= 30) s.status = "yellow";
+                else s.status = "green";
+            });
             updateDashboard();
-            if (map && trafficVisible) addRoads();
+            updateMapMarkers();
+            updateForecasts();
         }
 
-        function startAutoUpdate() {
-            updateDashboard();
-            if (updateInterval) clearInterval(updateInterval);
-            setInterval(() => {
-                updateDashboard();
-                if (map && trafficVisible) addRoads();
-            }, 10000);
-        }
-
+        // Глобальные функции
         window.switchTab = switchTab;
-        window.askAboutStreet = askAboutStreet;
-        window.toggleChat = toggleChat;
         window.sendChatMessage = sendChatMessage;
+        window.askAboutStreet = askAboutStreet;
         window.refreshAll = refreshAll;
-        window.changeMapLayer = changeMapLayer;
-        window.toggleTraffic = toggleTraffic;
-        window.toggleNotifications = toggleNotifications;
-        
+        window.nextQuestion = nextQuestion;
+        window.restartQuiz = restartQuiz;
+
         document.getElementById('chatInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendChatMessage();
         });
-        
+
+        // Запуск
         window.addEventListener('load', () => {
             initMap();
-            startAutoUpdate();
-            document.getElementById('aiChat').style.display = 'flex';
+            updateDashboard();
+            updateForecasts();
+            setInterval(() => {
+                refreshAll();
+            }, 15000);
         });
     </script>
 </body>
